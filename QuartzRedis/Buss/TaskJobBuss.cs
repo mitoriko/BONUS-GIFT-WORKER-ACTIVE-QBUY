@@ -14,7 +14,10 @@ namespace QuartzRedis.Buss
         {
             Console.WriteLine(DateTime.Now.ToString("yyyy-MM-dd HH:mm") + "> " + "开始处理" + Global.TASK_JOB + ":" + ids);
             TaskJobDao taskJobDao = new TaskJobDao();
-            
+
+            //get qbuys
+            var qbuyList = taskJobDao.GetActiveQBuy();
+            //loop qbuy 
         }
     }
 }

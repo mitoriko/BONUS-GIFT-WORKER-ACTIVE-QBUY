@@ -35,6 +35,18 @@ namespace QuartzRedis
         public string msg;
     }
 
+    public class ActiveQBuyItem
+    {
+        public string activeQBuyId;
+        public string activeId;
+        public double beforeStart;
+        public int lastDays;
+        public int checkNum;
+        public int consumeNum;
+        public int minConsume;
+        public string storeId;
+    }
+
     public class MemberCheckStore
     {
         public string storeId;
