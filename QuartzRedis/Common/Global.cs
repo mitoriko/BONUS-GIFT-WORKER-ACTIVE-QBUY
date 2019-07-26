@@ -9,7 +9,12 @@ namespace QuartzRedis.Common
 {
     public class Global
     {
+
+#if DEBUG
+        public const string ENV = "DEV";
+#else
         public const string ENV = "PRO";
+#endif
         public const string GROUP = "Task-Gift";
 
         public const string TASK_JOB = "GIFT-QBUY-0-1";
@@ -51,9 +56,9 @@ namespace QuartzRedis.Common
 
         static void GetConfig(bool isFirst)
         {
-            string url = "http://ConfigServer/api/config/Config/Open";
+            string url = "http://ConfigServer/api/config/Config/Pro";
 #if DEBUG
-            url = "http://" + ConfigServer + "/api/config/Config/Open";
+            url = "http://" + ConfigServer + "/api/config/Config/Dev";
 #endif
             ConfigParam configParam = new ConfigParam
             {

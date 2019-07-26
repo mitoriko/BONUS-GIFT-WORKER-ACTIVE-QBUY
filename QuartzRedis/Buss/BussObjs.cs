@@ -45,6 +45,8 @@ namespace QuartzRedis
         public int consumeNum;
         public int minConsume;
         public string storeId;
+        public DateTime dateFrom;
+        public DateTime dateTo;
     }
 
     public class MemberCheckStore

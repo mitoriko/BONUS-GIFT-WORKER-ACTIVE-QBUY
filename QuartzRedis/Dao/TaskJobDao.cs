@@ -15,7 +15,7 @@ namespace QuartzRedis.Dao
             StringBuilder builder = new StringBuilder();
             builder.AppendFormat(TaskJobSqls.SELECT_ACTIVE_QBUY_LIST);
             string sql = builder.ToString();
-            DataTable dt = DatabaseOperationWeb.ExecuteSelectDS(sql, "T").Tables[0];
+            DataTable dt = DatabaseOperation.ExecuteSelectDS(sql, "T").Tables[0];
             if (dt != null)
             {
                 foreach(DataRow dr in dt.Rows)
@@ -29,13 +29,69 @@ namespace QuartzRedis.Dao
                         checkNum = Convert.ToInt32(dr["CHECK_NUM"]),
                         consumeNum = Convert.ToInt32(dr["CONSUME_NUM"]),
                         minConsume = Convert.ToInt32(dr["MIN_CONSUME"]),
-                        storeId = dr["STORE_ID"].ToString()
+                        storeId = dr["ACTIVE_STORE"].ToString(),
+                        dateFrom = Convert.ToDateTime(dr["ACTIVE_TIME_FROM"]),
+                        dateTo = Convert.ToDateTime(dr["ACTIVE_TIME_TO"]),
                     };
 
                     list.Add(item);
                 }
             }
 
+
+            return list;
+        }
+
+        public List<string> GetMemberCheckStores(
+            string storeId, 
+            string dateFrom, 
+            string dateTo, 
+            int minConsume,
+            int consumeNum,
+            int checkNum)
+        {
+            List<string> listCheck = new List<string>();
+            List<string> list = new List<string>();
+            StringBuilder builder = new StringBuilder();
+            builder.AppendFormat(
+                TaskJobSqls.SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CHECK, 
+                storeId, 
+                dateFrom, 
+                dateTo,
+                checkNum);
+            string sql = builder.ToString();
+            DataTable dt = DatabaseOperation.ExecuteSelectDS(sql, "T").Tables[0];
+            if (dt != null)
+            {
+                foreach (DataRow dr in dt.Rows)
+                {
+                    var checkMember = dr["MEMBER_ID"].ToString();
+                    listCheck.Add(checkMember);
+                }
+            }
+
+            builder.Clear();
+            builder.AppendFormat(
+                TaskJobSqls.SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CONSUME,
+                storeId,
+                dateFrom,
+                dateTo,
+                minConsume,
+                consumeNum);
+            sql = builder.ToString();
+            dt = DatabaseOperation.ExecuteSelectDS(sql, "T").Tables[0];
+            if (dt != null)
+            {
+                foreach (DataRow dr in dt.Rows)
+                {
+                    var consumeMember = dr["MEMBER_ID"].ToString();
+                    if(listCheck.Contains(consumeMember))
+                    {
+                        list.Add(consumeMember);
+                    }
+                    
+                }
+            }
 
             return list;
         }
@@ -51,5 +107,22 @@ namespace QuartzRedis.Dao
             + "AND A.ACTIVE_TIME_FROM < NOW() "
             + "AND A.ACTIVE_TIME_TO > NOW() "
             + "AND A.ACTIVE_STATE = 1";
+        public const string SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CONSUME = ""
+            + "SELECT MEMBER_ID,COUNT(*) "
+            + "FROM T_BUSS_MEMBER_CHECK_STORE "
+            + "WHERE STORE_ID = {0} "
+            + "AND DATE_FORMAT(CHECK_TIME,'%Y%m%d%H%i%s') BETWEEN "
+            + "'{1}' AND '{2}' "
+            + "AND CONSUME >= {3} "
+            + "GROUP BY MEMBER_ID "
+            + "HAVING COUNT(*) >= {4} ";
+        public const string SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CHECK = ""
+            + "SELECT MEMBER_ID,COUNT(*) "
+            + "FROM T_BUSS_MEMBER_CHECK_STORE "
+            + "WHERE STORE_ID = {0} "
+            + "AND DATE_FORMAT(CHECK_TIME,'%Y%m%d%H%i%s') BETWEEN "
+            + "'{1}' AND '{2}' "
+            + "GROUP BY MEMBER_ID "
+            + "HAVING COUNT(*) >= {3} ";
     }
 }
