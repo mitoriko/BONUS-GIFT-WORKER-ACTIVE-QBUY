@@ -25,7 +25,13 @@ namespace QuartzRedis.Buss
                         item.dateTo.ToString("yyyyMMddHHmmss"),
                         item.minConsume,
                         item.consumeNum,
-                        item.checkNum);
+                        item.checkNum,
+                        item.activeId);
+
+                foreach(string memberId in storeConsumeList)
+                {
+                    taskJobDao.InsertQBuy(item.activeId, item.activeQBuyId, item.storeId, memberId, item.beforeStart, item.lastDays);
+                }
             }
         }
     }

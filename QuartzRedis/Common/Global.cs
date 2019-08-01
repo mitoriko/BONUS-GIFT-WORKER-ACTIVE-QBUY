@@ -17,7 +17,7 @@ namespace QuartzRedis.Common
 #endif
         public const string GROUP = "Task-Gift";
 
-        public const string TASK_JOB = "GIFT-QBUY-0-1";
+        public const string TASK_JOB = "GIFT-QBUY";
 
         public const string TASK_PREFIX = "Task";
 

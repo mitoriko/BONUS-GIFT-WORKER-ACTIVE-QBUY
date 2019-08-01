@@ -48,7 +48,8 @@ namespace QuartzRedis.Dao
             string dateTo, 
             int minConsume,
             int consumeNum,
-            int checkNum)
+            int checkNum,
+            string activeId)
         {
             List<string> listCheck = new List<string>();
             List<string> list = new List<string>();
@@ -58,7 +59,8 @@ namespace QuartzRedis.Dao
                 storeId, 
                 dateFrom, 
                 dateTo,
-                checkNum);
+                checkNum,
+                activeId);
             string sql = builder.ToString();
             DataTable dt = DatabaseOperation.ExecuteSelectDS(sql, "T").Tables[0];
             if (dt != null)
@@ -77,7 +79,8 @@ namespace QuartzRedis.Dao
                 dateFrom,
                 dateTo,
                 minConsume,
-                consumeNum);
+                consumeNum,
+                activeId);
             sql = builder.ToString();
             dt = DatabaseOperation.ExecuteSelectDS(sql, "T").Tables[0];
             if (dt != null)
@@ -95,6 +98,28 @@ namespace QuartzRedis.Dao
 
             return list;
         }
+
+        public bool InsertQBuy(
+            string activeId,
+            string activeQBuyId,
+            string storeId,
+            string memberId,
+            double beforeStart,
+            int lastDays
+            )
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.AppendFormat(
+                TaskJobSqls.INSERT_QBUY_LIST,
+                activeId,
+                activeQBuyId,
+                storeId,
+                memberId,
+                beforeStart,
+                lastDays);
+            string sql = builder.ToString();
+            return DatabaseOperation.ExecuteDML(sql);
+        }
     }
 
     public class TaskJobSqls
@@ -109,20 +134,25 @@ namespace QuartzRedis.Dao
             + "AND A.ACTIVE_STATE = 1";
         public const string SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CONSUME = ""
             + "SELECT MEMBER_ID,COUNT(*) "
-            + "FROM T_BUSS_MEMBER_CHECK_STORE "
+            + "FROM T_BUSS_MEMBER_CHECK_STORE A "
             + "WHERE STORE_ID = {0} "
             + "AND DATE_FORMAT(CHECK_TIME,'%Y%m%d%H%i%s') BETWEEN "
             + "'{1}' AND '{2}' "
+            + "AND CHECK_TIME > IFNULL((SELECT MAX(S.GET_TIME) FROM T_BUSS_QBUY S WHERE S.ACTIVE_ID = {5} AND S.MEMBER_ID = A.MEMBER_ID), 0) "
             + "AND CONSUME >= {3} "
             + "GROUP BY MEMBER_ID "
             + "HAVING COUNT(*) >= {4} ";
         public const string SELECT_CHECK_STORE_BY_STORE_AND_GROUP_MEMBER_FOR_CHECK = ""
             + "SELECT MEMBER_ID,COUNT(*) "
-            + "FROM T_BUSS_MEMBER_CHECK_STORE "
+            + "FROM T_BUSS_MEMBER_CHECK_STORE A "
             + "WHERE STORE_ID = {0} "
             + "AND DATE_FORMAT(CHECK_TIME,'%Y%m%d%H%i%s') BETWEEN "
             + "'{1}' AND '{2}' "
+            + "AND CHECK_TIME > IFNULL((SELECT MAX(S.GET_TIME) FROM T_BUSS_QBUY S WHERE S.ACTIVE_ID = {4} AND S.MEMBER_ID = A.MEMBER_ID), 0) "
             + "GROUP BY MEMBER_ID "
             + "HAVING COUNT(*) >= {3} ";
+        public const string INSERT_QBUY_LIST = ""
+            + "INSERT INTO T_BUSS_QBUY(ACTIVE_ID,ACTIVE_QBUY_ID,STORE_ID,MEMBER_ID,STATE,START_TIME,END_TIME,GET_TIME) "
+            + "VALUES({0},{1},{2},{3},0,DATE_ADD(NOW(),INTERVAL {4} MINUTE),DATE_ADD(NOW(),INTERVAL {5} DAY),NOW())";
     }
 }
