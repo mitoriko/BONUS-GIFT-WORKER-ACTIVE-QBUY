@@ -108,6 +108,8 @@ namespace QuartzRedis.Dao
             int lastDays
             )
         {
+            string qbuyCode = activeQBuyId + memberId + DateTime.Now.ToString("yyyyMMddHHmmss");
+            ArrayList list = new ArrayList();
             StringBuilder builder = new StringBuilder();
             builder.AppendFormat(
                 TaskJobSqls.INSERT_QBUY_LIST,
@@ -116,9 +118,15 @@ namespace QuartzRedis.Dao
                 storeId,
                 memberId,
                 beforeStart,
-                lastDays);
+                lastDays,
+                qbuyCode);
             string sql = builder.ToString();
-            return DatabaseOperation.ExecuteDML(sql);
+            list.Add(sql);
+            builder.Clear();
+            builder.AppendFormat(TaskJobSqls.INSERT_QBUY_GOODS, activeQBuyId, qbuyCode);
+            sql = builder.ToString();
+            list.Add(sql);
+            return DatabaseOperation.ExecuteDML(list);
         }
     }
 
@@ -152,7 +160,11 @@ namespace QuartzRedis.Dao
             + "GROUP BY MEMBER_ID "
             + "HAVING COUNT(*) >= {3} ";
         public const string INSERT_QBUY_LIST = ""
-            + "INSERT INTO T_BUSS_QBUY(ACTIVE_ID,ACTIVE_QBUY_ID,STORE_ID,MEMBER_ID,STATE,START_TIME,END_TIME,GET_TIME) "
-            + "VALUES({0},{1},{2},{3},0,DATE_ADD(NOW(),INTERVAL {4} MINUTE),DATE_ADD(NOW(),INTERVAL {5} DAY),NOW())";
+            + "INSERT INTO T_BUSS_QBUY(ACTIVE_ID,ACTIVE_QBUY_ID,STORE_ID,MEMBER_ID,STATE,START_TIME,END_TIME,GET_TIME,QBUY_CODE) "
+            + "VALUES({0},{1},{2},{3},0,DATE_ADD(NOW(),INTERVAL {4} MINUTE),DATE_ADD(NOW(),INTERVAL {5} DAY),NOW(),'{6}')";
+        public const string INSERT_QBUY_GOODS = ""
+            + "INSERT INTO T_BUSS_QBUY_GOODS(GOODS_ID,Q_PRICE,Q_NUM,QBUY_CODE) "
+            + "SELECT GOODS_ID,Q_PRICE,Q_NUM,'{1}' AS QBUY_CODE "
+            + "FROM T_BUSS_ACTIVE_QBUY_GOODS WHERE ACTIVE_QBUY_ID = {0}";
     }
 }
