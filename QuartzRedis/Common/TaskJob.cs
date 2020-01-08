@@ -15,16 +15,17 @@ namespace QuartzRedis.Common
         public static void Worker()
         {
             IsBusy = true;
-            var redis = RedisManager.getRedisConn();
-            var db = redis.GetDatabase(11);
-            while (db.ListLength(Global.TASK_PREFIX + "." + Global.TASK_JOB) > 0)
-            {
-                RedisValue ids = db.ListRightPop(Global.TASK_PREFIX + "." + Global.TASK_JOB);
-                if (!ids.IsNull)
-                {
-                    taskJobBuss.doWork(ids.ToString());
-                }
-            }
+            //var redis = RedisManager.getRedisConn();
+            //var db = redis.GetDatabase(11);
+            //while (db.ListLength(Global.TASK_PREFIX + "." + Global.TASK_JOB) > 0)
+            //{
+            //    RedisValue ids = db.ListRightPop(Global.TASK_PREFIX + "." + Global.TASK_JOB);
+            //    if (!ids.IsNull)
+            //    {
+            //        taskJobBuss.doWork(ids.ToString());
+            //    }
+            //}
+            taskJobBuss.doWork("");
             IsBusy = false;
         }
 
